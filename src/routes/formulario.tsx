@@ -74,7 +74,8 @@ function FormularioPage() {
     QRCode.toDataURL(pixCode, { width: 320, margin: 1 }).then(setQrDataUrl);
   }, [showQr, pixCode]);
 
-  const canSubmit = nome.trim().length >= 3 && cpfDigits.length === 11 && Boolean(banco);
+  const cpfInvalid = cpfDigits.length === 11 && !isValidCpf(cpfDigits);
+  const canSubmit = nome.trim().length >= 3 && isValidCpf(cpfDigits) && Boolean(banco);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -189,6 +190,12 @@ function FormularioPage() {
         {errorMsg && (
           <p className="mt-3 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
             {errorMsg}
+          </p>
+        )}
+
+        {!errorMsg && cpfInvalid && (
+          <p className="mt-3 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+            CPF inválido. Informe um CPF real para gerar o Pix.
           </p>
         )}
 
