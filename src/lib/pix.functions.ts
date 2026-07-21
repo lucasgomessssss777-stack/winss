@@ -26,7 +26,7 @@ function isValidCpf(value: string) {
 function readProviderMessage(json: any, fallback: string) {
   const detail = json?.error?.detail;
   const buyerDetail = Array.isArray(detail?.buyer) ? detail.buyer.join(" ") : undefined;
-  return json?.message || json?.error?.message || buyerDetail || json?.error?.detail || fallback;
+  return json?.message || buyerDetail || json?.error?.message || json?.error?.detail || fallback;
 }
 
 export const createPixTransaction = createServerFn({ method: "POST" })
@@ -92,14 +92,19 @@ export const createPixTransaction = createServerFn({ method: "POST" })
     if (!res.ok) {
       if (res.status === 403) {
         console.error("[buckpay] chave sem permissão para criar transações:", text);
-        throw new Error(
-          "A chave da API Pix está sem permissão para criar transações. Ative a permissão de transações na BuckPay/UPay ou atualize BUCKPAY_API_TOKEN com uma chave autorizada.",
-        );
+        return {
+          ok: false as const,
+          error:
+            "A chave da API Pix está sem permissão para criar transações. Ative a permissão de transações na BuckPay ou atualize BUCKPAY_API_TOKEN com uma chave autorizada.",
+        };
       }
 
       if ([502, 503, 504].includes(res.status)) {
         console.error("[buckpay] provedor indisponível:", res.status, text.slice(0, 300));
-        throw new Error("A API Pix está temporariamente indisponível. Tente novamente em alguns instantes.");
+        return {
+          ok: false as const,
+          error: "A API Pix está temporariamente indisponível. Tente novamente em alguns instantes.",
+        };
       }
 
       const message = readProviderMessage(json, `Falha ao criar transação Pix (status ${res.status}).`);
