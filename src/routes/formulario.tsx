@@ -77,6 +77,10 @@ function FormularioPage() {
           banco,
         },
       });
+      if (!res.ok) {
+        setErrorMsg(res.error);
+        return;
+      }
       setPixCode(res.pix_code);
       setShowQr(true);
       setTimeout(() => {
