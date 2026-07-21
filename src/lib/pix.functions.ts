@@ -33,23 +33,34 @@ export const createPixTransaction = createServerFn({ method: "POST" })
       },
     };
 
-    const res = await fetch("https://upay-sistema-api.onrender.com/api/v1/transactions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-        "API-Key": token.trim(),
-      },
-      body: JSON.stringify(body),
-    });
-
-    const text = await res.text();
+    let res: Response | null = null;
+    let text = "";
     let json: any = null;
-    try {
-      json = text ? JSON.parse(text) : null;
-    } catch {
-      /* noop */
+
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      res = await fetch("https://upay-sistema-api.onrender.com/api/v1/transactions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          "API-Key": token.trim(),
+        },
+        body: JSON.stringify(body),
+      });
+
+      text = await res.text();
+      json = null;
+      try {
+        json = text ? JSON.parse(text) : null;
+      } catch {
+        /* noop */
+      }
+
+      if (![502, 503, 504].includes(res.status)) break;
+      await new Promise((resolve) => setTimeout(resolve, 800));
     }
+
+    if (!res) throw new Error("Não foi possível conectar à API Pix.");
 
     if (!res.ok) {
       if (res.status === 403) {
@@ -57,6 +68,11 @@ export const createPixTransaction = createServerFn({ method: "POST" })
         throw new Error(
           "A chave da API Pix está sem permissão para criar transações. Ative a permissão de transações na BuckPay/UPay ou atualize BUCKPAY_API_TOKEN com uma chave autorizada.",
         );
+      }
+
+      if ([502, 503, 504].includes(res.status)) {
+        console.error("[buckpay] provedor indisponível:", res.status, text.slice(0, 300));
+        throw new Error("A API Pix está temporariamente indisponível. Tente novamente em alguns instantes.");
       }
 
       const message =
