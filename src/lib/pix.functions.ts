@@ -9,6 +9,26 @@ const inputSchema = z.object({
   banco: z.string().max(100).optional(),
 });
 
+function isValidCpf(value: string) {
+  const cpf = value.replace(/\D/g, "");
+  if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
+
+  const digits = cpf.split("").map(Number);
+  const firstSum = digits.slice(0, 9).reduce((sum, digit, index) => sum + digit * (10 - index), 0);
+  const firstCheck = (firstSum * 10) % 11;
+  if ((firstCheck === 10 ? 0 : firstCheck) !== digits[9]) return false;
+
+  const secondSum = digits.slice(0, 10).reduce((sum, digit, index) => sum + digit * (11 - index), 0);
+  const secondCheck = (secondSum * 10) % 11;
+  return (secondCheck === 10 ? 0 : secondCheck) === digits[10];
+}
+
+function readProviderMessage(json: any, fallback: string) {
+  const detail = json?.error?.detail;
+  const buyerDetail = Array.isArray(detail?.buyer) ? detail.buyer.join(" ") : undefined;
+  return json?.message || json?.error?.message || buyerDetail || json?.error?.detail || fallback;
+}
+
 export const createPixTransaction = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => inputSchema.parse(d))
   .handler(async ({ data }) => {
@@ -16,6 +36,13 @@ export const createPixTransaction = createServerFn({ method: "POST" })
     if (!token) throw new Error("BUCKPAY_API_TOKEN não configurado.");
 
     const cpfDigits = data.cpf.replace(/\D/g, "");
+    if (!isValidCpf(cpfDigits)) {
+      return {
+        ok: false as const,
+        error: "CPF inválido. Informe um CPF real para gerar o Pix.",
+      };
+    }
+
     const amountCents = Math.round(data.amount * 100);
     const external_id = `mag-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
@@ -75,13 +102,12 @@ export const createPixTransaction = createServerFn({ method: "POST" })
         throw new Error("A API Pix está temporariamente indisponível. Tente novamente em alguns instantes.");
       }
 
-      const message =
-        json?.message ||
-        json?.error?.message ||
-        json?.error?.detail ||
-        `Falha ao criar transação Pix (status ${res.status}).`;
+      const message = readProviderMessage(json, `Falha ao criar transação Pix (status ${res.status}).`);
       console.error("[buckpay] erro:", res.status, text);
-      throw new Error(typeof message === "string" ? message : "Falha ao criar transação Pix.");
+      return {
+        ok: false as const,
+        error: typeof message === "string" ? message : "Falha ao criar transação Pix.",
+      };
     }
 
     const transaction = json?.transaction ?? json?.data ?? json;
