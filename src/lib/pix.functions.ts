@@ -29,11 +29,8 @@ export const createPixTransaction = createServerFn({ method: "POST" })
         document: cpfDigits,
         phone: "5511999999999",
       },
-      metadata: {
-        premio_valor: data.premio_valor ?? null,
-        banco: data.banco ?? null,
-      },
     };
+
 
     let res: Response | null = null;
     let text = "";
