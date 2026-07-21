@@ -48,6 +48,7 @@ function FormularioPage() {
   const [pixCode, setPixCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const cpfDigits = onlyDigits(pix);
 
   useEffect(() => {
     const v = sessionStorage.getItem("premio");
@@ -59,7 +60,7 @@ function FormularioPage() {
     QRCode.toDataURL(pixCode, { width: 320, margin: 1 }).then(setQrDataUrl);
   }, [showQr, pixCode]);
 
-  const canSubmit = nome.trim().length >= 3 && pix.trim().length >= 3 && banco;
+  const canSubmit = nome.trim().length >= 3 && cpfDigits.length === 11 && Boolean(banco);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -71,7 +72,7 @@ function FormularioPage() {
         data: {
           amount: 19.9,
           nome: nome.trim(),
-          cpf: pix,
+          cpf: cpfDigits,
           premio_valor: premio,
           banco,
         },

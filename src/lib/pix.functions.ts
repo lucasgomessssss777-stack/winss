@@ -52,6 +52,13 @@ export const createPixTransaction = createServerFn({ method: "POST" })
     }
 
     if (!res.ok) {
+      if (res.status === 403) {
+        console.error("[buckpay] chave sem permissão para criar transações:", text);
+        throw new Error(
+          "A chave da API Pix está sem permissão para criar transações. Ative a permissão de transações na BuckPay/UPay ou atualize BUCKPAY_API_TOKEN com uma chave autorizada.",
+        );
+      }
+
       const message =
         json?.message ||
         json?.error?.message ||
