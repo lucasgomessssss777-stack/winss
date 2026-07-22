@@ -42,11 +42,12 @@ export const Route = createFileRoute("/admin")({
 
 function AdminPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const check = useServerFn(checkAdminSession);
   const sessionQ = useQuery({
     queryKey: ["admin-session"],
     queryFn: () => check(),
-    staleTime: 0,
+    staleTime: 5 * 60 * 1000,
   });
 
   if (sessionQ.isLoading) {
@@ -58,11 +59,26 @@ function AdminPage() {
   }
 
   if (!sessionQ.data?.authenticated) {
-    return <LoginForm onSuccess={() => router.invalidate()} />;
+    return (
+      <LoginForm
+        onSuccess={() => {
+          queryClient.setQueryData(["admin-session"], { authenticated: true });
+          router.invalidate();
+        }}
+      />
+    );
   }
 
-  return <Dashboard onLogout={() => router.invalidate()} />;
+  return (
+    <Dashboard
+      onLogout={() => {
+        queryClient.setQueryData(["admin-session"], { authenticated: false });
+        router.invalidate();
+      }}
+    />
+  );
 }
+
 
 function LoginForm({ onSuccess }: { onSuccess: () => void }) {
   const login = useServerFn(adminLogin);
