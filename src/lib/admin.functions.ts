@@ -8,7 +8,7 @@ const buildSessionConfig = () => ({
   cookie: {
     httpOnly: true,
     secure: true,
-    sameSite: "none" as const,
+    sameSite: "lax" as const,
     path: "/",
   },
 });
@@ -26,23 +26,26 @@ function timingSafeEq(a: string, b: string): boolean {
 }
 
 export const adminLogin = createServerFn({ method: "POST" })
-  .inputValidator((d: { username: string; password: string }) =>
-    z.object({ username: z.string().min(1), password: z.string().min(1) }).parse(d),
+  .inputValidator((d: { email: string; password: string }) =>
+    z.object({ email: z.string().min(1), password: z.string().min(1) }).parse(d),
   )
   .handler(async ({ data }) => {
-    const expectedUser = process.env.ADMIN_USER ?? "";
+    const expectedUser = (process.env.ADMIN_USER ?? "").trim();
     const expectedPass = process.env.ADMIN_PASSWORD ?? "";
     if (!expectedUser || !expectedPass) {
       return { ok: false as const, error: "Admin não configurado." };
     }
-    if (!timingSafeEq(data.username, expectedUser) || !timingSafeEq(data.password, expectedPass)) {
-      return { ok: false as const, error: "Usuário ou senha incorretos." };
+    const inputUser = data.email.trim().toLowerCase();
+    const expectedUserNorm = expectedUser.toLowerCase();
+    if (!timingSafeEq(inputUser, expectedUserNorm) || !timingSafeEq(data.password, expectedPass)) {
+      return { ok: false as const, error: "E-mail ou senha incorretos." };
     }
     const { useSession } = await import("@tanstack/react-start/server");
     const session = await useSession<AdminSession>(buildSessionConfig());
     await session.update({ authenticated: true });
     return { ok: true as const };
   });
+
 
 export const adminLogout = createServerFn({ method: "POST" }).handler(async () => {
   const { useSession } = await import("@tanstack/react-start/server");
