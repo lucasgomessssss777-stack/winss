@@ -42,11 +42,12 @@ export const Route = createFileRoute("/admin")({
 
 function AdminPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const check = useServerFn(checkAdminSession);
   const sessionQ = useQuery({
     queryKey: ["admin-session"],
     queryFn: () => check(),
-    staleTime: 0,
+    staleTime: 5 * 60 * 1000,
   });
 
   if (sessionQ.isLoading) {
@@ -58,25 +59,41 @@ function AdminPage() {
   }
 
   if (!sessionQ.data?.authenticated) {
-    return <LoginForm onSuccess={() => router.invalidate()} />;
+    return (
+      <LoginForm
+        onSuccess={() => {
+          queryClient.setQueryData(["admin-session"], { authenticated: true });
+          router.invalidate();
+        }}
+      />
+    );
   }
 
-  return <Dashboard onLogout={() => router.invalidate()} />;
+  return (
+    <Dashboard
+      onLogout={() => {
+        queryClient.setQueryData(["admin-session"], { authenticated: false });
+        router.invalidate();
+      }}
+    />
+  );
 }
+
 
 function LoginForm({ onSuccess }: { onSuccess: () => void }) {
   const login = useServerFn(adminLogin);
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (loading) return;
     setLoading(true);
     setError(null);
     try {
-      const res = await login({ data: { username, password } });
+      const res = await login({ data: { email: email.trim(), password } });
       if (!res.ok) setError(res.error);
       else onSuccess();
     } catch {
@@ -95,12 +112,15 @@ function LoginForm({ onSuccess }: { onSuccess: () => void }) {
         </div>
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
           <label className="flex flex-col gap-1">
-            <span className="text-sm font-semibold text-foreground">Usuário</span>
+            <span className="text-sm font-semibold text-foreground">E-mail</span>
             <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              autoComplete="username"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
+              inputMode="email"
+              autoCapitalize="none"
+              spellCheck={false}
               className="rounded-md border border-input bg-white px-3 py-3 text-base outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
             />
           </label>
@@ -127,6 +147,7 @@ function LoginForm({ onSuccess }: { onSuccess: () => void }) {
     </div>
   );
 }
+
 
 function Dashboard({ onLogout }: { onLogout: () => void }) {
   const getStats = useServerFn(getAdminStats);
