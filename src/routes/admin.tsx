@@ -397,9 +397,9 @@ function LineChart({ points }: { points: HourlyPoint[] }) {
     return arr;
   }, [points]);
 
-  const width = 720;
-  const height = 260;
-  const padding = { top: 16, right: 12, bottom: 44, left: 32 };
+  const width = 960;
+  const height = 300;
+  const padding = { top: 16, right: 16, bottom: 56, left: 40 };
   const innerW = width - padding.left - padding.right;
   const innerH = height - padding.top - padding.bottom;
   const n = buckets.length;
@@ -423,15 +423,19 @@ function LineChart({ points }: { points: HourlyPoint[] }) {
       .join(" ");
   }
 
-  // Day boundaries (every 24 buckets) for weekday labels
-  const dayTicks = buckets
-    .map((b, i) => ({ i, b }))
-    .filter(({ b }) => b.hour === 0);
+  // One entry per day: start index, end index, label
+  const dayBlocks = Array.from({ length: 7 }).map((_, d) => {
+    const startI = d * 24;
+    const endI = startI + 23;
+    const day = buckets[startI].date;
+    return { startI, endI, day };
+  });
 
-  // Hour ticks (every 6h) for smaller labels
+  // Hour ticks (every 3h) for smaller labels
   const hourTicks = buckets
     .map((b, i) => ({ i, b }))
-    .filter(({ b }) => b.hour % 6 === 0);
+    .filter(({ b }) => b.hour % 3 === 0);
+
 
   const yTicks = 4;
 
@@ -462,10 +466,26 @@ function LineChart({ points }: { points: HourlyPoint[] }) {
       <div className="overflow-x-auto">
         <svg
           viewBox={`0 0 ${width} ${height}`}
-          className="min-w-[640px] w-full"
+          className="min-w-[720px] w-full"
           role="img"
           aria-label="Gráfico de linhas de atividade por dia da semana e horário"
         >
+          {/* Alternating day background bands */}
+          {dayBlocks.map((d, idx) => {
+            const x1 = xFor(d.startI);
+            const x2 = xFor(d.endI);
+            return (
+              <rect
+                key={`band-${idx}`}
+                x={x1}
+                y={padding.top}
+                width={Math.max(0, x2 - x1)}
+                height={innerH}
+                fill={idx % 2 === 0 ? "#f8fafc" : "#ffffff"}
+              />
+            );
+          })}
+
           {/* Y grid */}
           {Array.from({ length: yTicks + 1 }).map((_, i) => {
             const y = padding.top + (i / yTicks) * innerH;
@@ -473,7 +493,7 @@ function LineChart({ points }: { points: HourlyPoint[] }) {
             return (
               <g key={`y-${i}`}>
                 <line x1={padding.left} x2={width - padding.right} y1={y} y2={y} stroke="#e5e7eb" strokeWidth={1} />
-                <text x={padding.left - 6} y={y + 3} textAnchor="end" fontSize={10} fill="#6b7280">
+                <text x={padding.left - 8} y={y + 3} textAnchor="end" fontSize={10} fill="#6b7280">
                   {val}
                 </text>
               </g>
@@ -481,53 +501,71 @@ function LineChart({ points }: { points: HourlyPoint[] }) {
           })}
 
           {/* Day dividers */}
-          {dayTicks.map(({ i, b }) => (
-            <g key={`d-${i}`}>
-              <line
-                x1={xFor(i)}
-                x2={xFor(i)}
-                y1={padding.top}
-                y2={padding.top + innerH}
-                stroke="#cbd5e1"
-                strokeDasharray="3 3"
-                strokeWidth={1}
-              />
-              <text
-                x={xFor(i) + 2}
-                y={padding.top + innerH + 30}
-                fontSize={11}
-                fontWeight={700}
-                fill="#374151"
-              >
-                {WEEKDAYS_PT[b.date.getDay()]}{" "}
-                {String(b.date.getDate()).padStart(2, "0")}/
-                {String(b.date.getMonth() + 1).padStart(2, "0")}
-              </text>
-            </g>
+          {dayBlocks.slice(1).map((d, idx) => (
+            <line
+              key={`div-${idx}`}
+              x1={xFor(d.startI)}
+              x2={xFor(d.startI)}
+              y1={padding.top}
+              y2={padding.top + innerH}
+              stroke="#cbd5e1"
+              strokeWidth={1}
+            />
           ))}
 
-          {/* Hour ticks */}
-          {hourTicks.map(({ i, b }) => (
-            <g key={`h-${i}`}>
-              <line
-                x1={xFor(i)}
-                x2={xFor(i)}
-                y1={padding.top + innerH}
-                y2={padding.top + innerH + 4}
-                stroke="#94a3b8"
-                strokeWidth={1}
-              />
-              <text
-                x={xFor(i)}
-                y={padding.top + innerH + 14}
-                textAnchor="middle"
-                fontSize={9}
-                fill="#6b7280"
-              >
-                {String(b.hour).padStart(2, "0")}h
-              </text>
-            </g>
-          ))}
+          {/* Hour ticks (every 3h), skipping the 0h at day start to avoid overlap */}
+          {hourTicks
+            .filter(({ b }) => b.hour !== 0)
+            .map(({ i, b }) => (
+              <g key={`h-${i}`}>
+                <line
+                  x1={xFor(i)}
+                  x2={xFor(i)}
+                  y1={padding.top + innerH}
+                  y2={padding.top + innerH + 4}
+                  stroke="#94a3b8"
+                  strokeWidth={1}
+                />
+                <text
+                  x={xFor(i)}
+                  y={padding.top + innerH + 14}
+                  textAnchor="middle"
+                  fontSize={9}
+                  fill="#94a3b8"
+                >
+                  {String(b.hour).padStart(2, "0")}h
+                </text>
+              </g>
+            ))}
+
+          {/* Centered weekday labels per day block */}
+          {dayBlocks.map((d, idx) => {
+            const cx = (xFor(d.startI) + xFor(d.endI)) / 2;
+            return (
+              <g key={`day-${idx}`}>
+                <text
+                  x={cx}
+                  y={padding.top + innerH + 32}
+                  textAnchor="middle"
+                  fontSize={11}
+                  fontWeight={700}
+                  fill="#374151"
+                >
+                  {WEEKDAYS_PT[d.day.getDay()]}
+                </text>
+                <text
+                  x={cx}
+                  y={padding.top + innerH + 46}
+                  textAnchor="middle"
+                  fontSize={10}
+                  fill="#6b7280"
+                >
+                  {String(d.day.getDate()).padStart(2, "0")}/
+                  {String(d.day.getMonth() + 1).padStart(2, "0")}
+                </text>
+              </g>
+            );
+          })}
 
           {/* Lines */}
           {SERIES.filter((s) => active[s.key]).map((s) => (
@@ -546,6 +584,7 @@ function LineChart({ points }: { points: HourlyPoint[] }) {
     </div>
   );
 }
+
 
 function SettingsCard() {
   const getSettings = useServerFn(getAdminSettings);
