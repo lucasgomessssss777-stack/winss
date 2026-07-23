@@ -50,7 +50,7 @@ export function Footer() {
         </div>
 
         <div className="mt-8 border-t border-border pt-4 text-xs">
-          Magazine Brasil Comércio Ltda. — CNPJ 00.000.000/0001-00 — Av. Paulista, 1000, São Paulo/SP.
+          Magazine Brasil Comércio Ltda. — CNPJ 48.970.950/0001-21 — Rua Voluntários da Franca, São Paulo/SP.
           <br />© {new Date().getFullYear()} Todos os direitos reservados.
         </div>
       </div>
