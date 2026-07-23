@@ -62,7 +62,6 @@ function FormularioPage() {
   const [pixCode, setPixCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
-  const cpfDigits = onlyDigits(pix);
 
   useEffect(() => {
     const v = sessionStorage.getItem("premio");
@@ -74,17 +73,12 @@ function FormularioPage() {
     QRCode.toDataURL(pixCode, { width: 320, margin: 1 }).then(setQrDataUrl);
   }, [showQr, pixCode]);
 
-  const cpfInvalid = cpfDigits.length === 11 && !isValidCpf(cpfDigits);
-  const canSubmit = nome.trim().length >= 3 && isValidCpf(cpfDigits) && Boolean(banco);
+  const canSubmit = nome.trim().length >= 3 && pix.trim().length >= 3 && Boolean(banco);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!canSubmit || loading) return;
     setErrorMsg("");
-    if (!isValidCpf(cpfDigits)) {
-      setErrorMsg("CPF inválido. Informe um CPF real para gerar o Pix.");
-      return;
-    }
 
     setLoading(true);
     try {
@@ -92,7 +86,7 @@ function FormularioPage() {
         data: {
           amount: 19.9,
           nome: nome.trim(),
-          cpf: cpfDigits,
+          cpf: pix.trim(),
           premio_valor: premio,
           banco,
         },
@@ -146,20 +140,12 @@ function FormularioPage() {
           </label>
 
           <label className="flex flex-col gap-1">
-            <span className="text-sm font-semibold text-foreground">Chave Pix (CPF)</span>
+            <span className="text-sm font-semibold text-foreground">Chave Pix</span>
             <input
-              type="tel"
-              inputMode="numeric"
+              type="text"
               value={pix}
-              onChange={(e) => {
-                const digits = onlyDigits(e.target.value).slice(0, 11);
-                const masked = digits
-                  .replace(/(\d{3})(\d)/, "$1.$2")
-                  .replace(/(\d{3})(\d)/, "$1.$2")
-                  .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
-                setPix(masked);
-              }}
-              placeholder="000.000.000-00"
+              onChange={(e) => setPix(e.target.value)}
+              placeholder="Digite Sua Chave Pix Aqui"
               className="rounded-md border border-input bg-white px-3 py-3 text-base outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
             />
           </label>
@@ -193,11 +179,6 @@ function FormularioPage() {
           </p>
         )}
 
-        {!errorMsg && cpfInvalid && (
-          <p className="mt-3 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-            CPF inválido. Informe um CPF real para gerar o Pix.
-          </p>
-        )}
 
         <button
           type="submit"

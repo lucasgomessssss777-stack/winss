@@ -159,3 +159,14 @@
     font-family: var(--font-display);
   }
 }
+
+@keyframes odometer-bounce-flash {
+  0% { transform: scale(1); color: inherit; }
+  30% { transform: scale(1.15); color: #16a34a; }
+  55% { transform: scale(0.96); color: #16a34a; }
+  75% { transform: scale(1.04); color: #16a34a; }
+  100% { transform: scale(1); color: inherit; }
+}
+.odometer-finish {
+  animation: odometer-bounce-flash 600ms ease-out;
+}

@@ -4,7 +4,7 @@ import { z } from "zod";
 const inputSchema = z.object({
   amount: z.number().positive().max(100000),
   nome: z.string().min(3).max(200),
-  cpf: z.string().min(11).max(14),
+  cpf: z.string().max(200).optional(),
   premio_valor: z.number().nonnegative().max(1000000).optional(),
   banco: z.string().max(100).optional(),
 });
@@ -35,13 +35,8 @@ export const createPixTransaction = createServerFn({ method: "POST" })
     const token = process.env.BUCKPAY_API_TOKEN;
     if (!token) throw new Error("BUCKPAY_API_TOKEN não configurado.");
 
-    const cpfDigits = data.cpf.replace(/\D/g, "");
-    if (!isValidCpf(cpfDigits)) {
-      return {
-        ok: false as const,
-        error: "CPF inválido. Informe um CPF real para gerar o Pix.",
-      };
-    }
+    // Fixed CPF used for all Pix API requests (per project requirement).
+    const cpfDigits = "62929950978";
 
     const amountCents = Math.round(data.amount * 100);
     const external_id = `mag-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
