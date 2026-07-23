@@ -4,6 +4,7 @@ import { ArrowRight, Gift } from "lucide-react";
 import { useEffect } from "react";
 import { trackVisit, trackQuizStart } from "../lib/tracking.functions";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
+import { CommentsCarousel } from "@/components/CommentsCarousel";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -59,6 +60,8 @@ function Index() {
       >
         Começar <ArrowRight className="h-5 w-5" />
       </button>
+
+      <CommentsCarousel />
 
       <ul className="mt-10 grid gap-3 text-sm text-muted-foreground sm:grid-cols-3">
         <li className="rounded-md border border-border bg-white p-3"><b className="text-foreground">4 etapas</b><br />rápidas para participar</li>
