@@ -33,23 +33,7 @@ const BANCOS = [
 function onlyLetters(v: string) {
   return v.replace(/[^A-Za-zÀ-ÿ\s]/g, "").replace(/\s{2,}/g, " ");
 }
-function onlyDigits(v: string) {
-  return v.replace(/\D/g, "");
-}
 
-function isValidCpf(value: string) {
-  const cpf = value.replace(/\D/g, "");
-  if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
-
-  const digits = cpf.split("").map(Number);
-  const firstSum = digits.slice(0, 9).reduce((sum, digit, index) => sum + digit * (10 - index), 0);
-  const firstCheck = (firstSum * 10) % 11;
-  if ((firstCheck === 10 ? 0 : firstCheck) !== digits[9]) return false;
-
-  const secondSum = digits.slice(0, 10).reduce((sum, digit, index) => sum + digit * (11 - index), 0);
-  const secondCheck = (secondSum * 10) % 11;
-  return (secondCheck === 10 ? 0 : secondCheck) === digits[10];
-}
 
 function FormularioPage() {
   const [nome, setNome] = useState("");
