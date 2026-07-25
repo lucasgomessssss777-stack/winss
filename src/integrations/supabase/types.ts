@@ -88,25 +88,37 @@ export type Database = {
           amount: number
           banco: string | null
           created_at: string
+          external_id: string | null
           id: string
           nome: string | null
+          paid_at: string | null
           premio_valor: number | null
+          status: string
+          transaction_id: string | null
         }
         Insert: {
           amount: number
           banco?: string | null
           created_at?: string
+          external_id?: string | null
           id?: string
           nome?: string | null
+          paid_at?: string | null
           premio_valor?: number | null
+          status?: string
+          transaction_id?: string | null
         }
         Update: {
           amount?: number
           banco?: string | null
           created_at?: string
+          external_id?: string | null
           id?: string
           nome?: string | null
+          paid_at?: string | null
           premio_valor?: number | null
+          status?: string
+          transaction_id?: string | null
         }
         Relationships: []
       }
