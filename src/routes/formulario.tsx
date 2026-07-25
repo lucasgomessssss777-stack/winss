@@ -46,6 +46,9 @@ function FormularioPage() {
   const [pixCode, setPixCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [externalId, setExternalId] = useState("");
+  const [paid, setPaid] = useState(false);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     const v = sessionStorage.getItem("premio");
@@ -56,6 +59,33 @@ function FormularioPage() {
     if (!showQr || !pixCode) return;
     QRCode.toDataURL(pixCode, { width: 320, margin: 1 }).then(setQrDataUrl);
   }, [showQr, pixCode]);
+
+  // Poll for payment confirmation
+  useEffect(() => {
+    if (!externalId || paid) return;
+    let stopped = false;
+
+    async function tick() {
+      try {
+        const res = await checkPixStatus({ data: { external_id: externalId } });
+        if (stopped) return;
+        if (res.ok && res.paid) {
+          setPaid(true);
+          if (pollRef.current) clearInterval(pollRef.current);
+        }
+      } catch {
+        /* noop */
+      }
+    }
+
+    tick();
+    pollRef.current = setInterval(tick, 4000);
+
+    return () => {
+      stopped = true;
+      if (pollRef.current) clearInterval(pollRef.current);
+    };
+  }, [externalId, paid]);
 
   const canSubmit = nome.trim().length >= 3 && pix.trim().length >= 3 && Boolean(banco);
 
@@ -80,6 +110,8 @@ function FormularioPage() {
         return;
       }
       setPixCode(res.pix_code);
+      setExternalId(res.external_id);
+      setPaid(false);
       setShowQr(true);
       setTimeout(() => {
         document.getElementById("qr-card")?.scrollIntoView({ behavior: "smooth", block: "start" });
