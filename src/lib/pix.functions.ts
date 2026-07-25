@@ -136,6 +136,9 @@ export const createPixTransaction = createServerFn({ method: "POST" })
         premio_valor: data.premio_valor ?? null,
         nome: data.nome,
         banco: data.banco ?? null,
+        external_id,
+        transaction_id: transactionId ?? null,
+        status: "pending",
       });
       await Promise.all([
         supabaseAdmin.rpc("increment_daily_payment", { amount: data.amount }),
@@ -151,5 +154,68 @@ export const createPixTransaction = createServerFn({ method: "POST" })
       transaction_id: transactionId ?? null,
       pix_code: pixCode,
       qrcode_base64: qrBase64 ?? null,
+    };
+  });
+
+const statusInputSchema = z.object({
+  external_id: z.string().min(1).max(200),
+});
+
+export const checkPixStatus = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) => statusInputSchema.parse(d))
+  .handler(async ({ data }) => {
+    const token = process.env.BUCKPAY_API_TOKEN;
+    if (!token) throw new Error("BUCKPAY_API_TOKEN não configurado.");
+
+    const res = await fetch(
+      `https://api.realtechdev.com.br/v1/transactions/external_id/${encodeURIComponent(data.external_id)}`,
+      {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${token.trim()}`,
+          "User-Agent": "Buckpay API",
+        },
+      },
+    );
+
+    const text = await res.text();
+    let json: any = null;
+    try {
+      json = text ? JSON.parse(text) : null;
+    } catch {
+      /* noop */
+    }
+
+    if (!res.ok) {
+      console.error("[buckpay] status erro:", res.status, text.slice(0, 300));
+      return { ok: false as const, status: "unknown", paid: false };
+    }
+
+    const transaction = json?.transaction ?? json?.data ?? json;
+    const rawStatus: string = String(
+      transaction?.status ?? transaction?.payment_status ?? "",
+    ).toLowerCase();
+
+    const paidStatuses = ["paid", "approved", "completed", "confirmed", "success"];
+    const isPaid = paidStatuses.includes(rawStatus);
+
+    if (isPaid) {
+      try {
+        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+        await supabaseAdmin
+          .from("payments")
+          .update({ status: "paid", paid_at: new Date().toISOString() })
+          .eq("external_id", data.external_id)
+          .neq("status", "paid");
+      } catch (e) {
+        console.error("[buckpay] update status falhou", e);
+      }
+    }
+
+    return {
+      ok: true as const,
+      status: isPaid ? "paid" : rawStatus || "pending",
+      paid: isPaid,
     };
   });
