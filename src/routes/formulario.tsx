@@ -205,7 +205,7 @@ function FormularioPage() {
         </button>
       </form>
 
-      {showQr && (
+      {showQr && !paid && (
         <div
           id="qr-card"
           className="mt-6 rounded-md border border-primary/30 bg-primary-soft/40 p-5 animate-in fade-in"
@@ -244,8 +244,27 @@ function FormularioPage() {
                 {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                 {copied ? "Copiado!" : "Copiar código"}
               </button>
+              <p className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
+                <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-primary" />
+                Aguardando confirmação do pagamento...
+              </p>
             </div>
           </div>
+        </div>
+      )}
+
+      {paid && (
+        <div
+          id="qr-card"
+          className="mt-6 rounded-md border border-green-500/40 bg-green-50 p-6 text-center animate-in fade-in"
+        >
+          <CheckCircle2 className="mx-auto h-12 w-12 text-green-600" />
+          <h2 className="mt-3 text-xl font-extrabold text-green-700">Pagamento confirmado!</h2>
+          <p className="mt-2 text-sm text-green-800">
+            Recebemos sua taxa de verificação. Seu saque de{" "}
+            <b>R$ {premio.toLocaleString("pt-BR")}</b> será processado em até 7 dias úteis na chave
+            Pix informada.
+          </p>
         </div>
       )}
     </div>
