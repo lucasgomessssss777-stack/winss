@@ -21,7 +21,7 @@ const COMMENTS: Comment[] = [
     name: "Carlos Eduardo",
     avatar: "https://i.pravatar.cc/80?img=12",
     time: "há 4 horas",
-    text: "Rapidinho fiz o quiz e ganhei meu prêmio. Magazine Brasil de parabéns!",
+    text: "Rapidinho fiz o quiz e ganhei meu prêmio. Magalu Brasil de parabéns!",
     likes: 92,
   },
   {
@@ -42,7 +42,7 @@ const COMMENTS: Comment[] = [
     name: "Patrícia Oliveira",
     avatar: "https://i.pravatar.cc/80?img=45",
     time: "há 10 horas",
-    text: "Muito obrigada Magazine Brasil! Vou usar o prêmio pra comprar o presente do meu filho ❤️",
+    text: "Muito obrigada Magalu Brasil! Vou usar o prêmio pra comprar o presente do meu filho ❤️",
     likes: 156,
   },
   {

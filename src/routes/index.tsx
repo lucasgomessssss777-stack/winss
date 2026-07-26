@@ -32,7 +32,7 @@ function Index() {
       <div className="overflow-hidden rounded-md border border-border">
         <img
           src={promoSrc}
-          alt="Banner promocional de aniversário Magazine Brasil"
+          alt="Banner promocional de aniversário Magalu Brasil"
           width={1600}
           height={900}
           className="h-auto w-full"
@@ -44,13 +44,13 @@ function Index() {
       </div>
 
       <h1 className="mt-4 text-xl font-extrabold leading-snug text-foreground sm:text-2xl">
-        Aniversário Magazine Brasil{" "}
+        Aniversário Magalu Brasil{" "}
         <span className="text-primary">ganhe até R$1000 em prêmios</span>
       </h1>
 
       <p className="mt-4 max-w-2xl text-base text-muted-foreground">
         Você recebeu um convite para participar de uma pesquisa de satisfação
-        Magazine. Complete as 4 etapas da pesquisa para concorrer.
+        Magalu. Complete as 4 etapas da pesquisa para concorrer.
       </p>
 
       <button

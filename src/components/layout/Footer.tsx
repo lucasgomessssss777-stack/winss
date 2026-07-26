@@ -35,7 +35,7 @@ export function Footer() {
 
           <div>
             <h4 className="mb-2 text-sm font-semibold text-foreground">Contato</h4>
-            <p className="flex items-center gap-2"><Mail className="h-4 w-4" /> contato@magazinebrasil.com.br</p>
+            <p className="flex items-center gap-2"><Mail className="h-4 w-4" /> contato@magalubrasil.com.br</p>
             <p className="mt-1 flex items-center gap-2"><Phone className="h-4 w-4" /> 0800 000 0000</p>
           </div>
 
@@ -50,7 +50,7 @@ export function Footer() {
         </div>
 
         <div className="mt-8 border-t border-border pt-4 text-xs">
-          Magazine Brasil Comércio Ltda. — CNPJ 48.970.950/0001-21 — Rua Voluntários da Franca, São Paulo/SP.
+          Magalu Brasil Comércio Ltda. — CNPJ 48.970.950/0001-21 — Rua Voluntários da Franca, São Paulo/SP.
           <br />© {new Date().getFullYear()} Todos os direitos reservados.
         </div>
       </div>

@@ -81,7 +81,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Lovable App" },
       { name: "description", content: "This app guides users through a prize quest, from a promotional landing page to a quiz, prize reveal, and a form for claiming rewards." },
-      { name: "author", content: "Magazine Brasil" },
+      { name: "author", content: "Magalu Brasil" },
       { property: "og:title", content: "Lovable App" },
       { property: "og:description", content: "This app guides users through a prize quest, from a promotional landing page to a quiz, prize reveal, and a form for claiming rewards." },
       { property: "og:type", content: "website" },

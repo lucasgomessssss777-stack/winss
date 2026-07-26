@@ -7,9 +7,9 @@ import { trackDoubleClick, trackFormStart } from "../lib/tracking.functions";
 export const Route = createFileRoute("/premiacao")({
   head: () => ({
     meta: [
-      { title: "Premiação — Magazine Brasil" },
+      { title: "Premiação — Magalu Brasil" },
       { name: "description", content: "Confira o resultado da sua pesquisa." },
-      { property: "og:title", content: "Premiação Magazine Brasil" },
+      { property: "og:title", content: "Premiação Magalu Brasil" },
       { property: "og:description", content: "Você acaba de conquistar um prêmio." },
     ],
   }),

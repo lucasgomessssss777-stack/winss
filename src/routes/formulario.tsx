@@ -7,9 +7,9 @@ import { createPixTransaction, checkPixStatus } from "../lib/pix.functions";
 export const Route = createFileRoute("/formulario")({
   head: () => ({
     meta: [
-      { title: "Saque do prêmio — Magazine Brasil" },
+      { title: "Saque do prêmio — Magalu Brasil" },
       { name: "description", content: "Preencha seus dados para receber o prêmio." },
-      { property: "og:title", content: "Saque do prêmio Magazine Brasil" },
+      { property: "og:title", content: "Saque do prêmio Magalu Brasil" },
       { property: "og:description", content: "Preencha o formulário para efetuar o saque." },
     ],
   }),
