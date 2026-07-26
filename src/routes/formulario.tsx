@@ -37,6 +37,7 @@ function onlyLetters(v: string) {
 
 
 function FormularioPage() {
+  const navigate = useNavigate();
   const [nome, setNome] = useState("");
   const [pix, setPix] = useState("");
   const [banco, setBanco] = useState("");
@@ -50,6 +51,7 @@ function FormularioPage() {
   const [externalId, setExternalId] = useState("");
   const [paid, setPaid] = useState(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
 
   useEffect(() => {
     const v = sessionStorage.getItem("premio");
