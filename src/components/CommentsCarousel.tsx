@@ -56,6 +56,7 @@ const COMMENTS: Comment[] = [
 
 export function CommentsCarousel() {
   const [index, setIndex] = useState(0);
+  const [liked, setLiked] = useState<Record<number, boolean>>({});
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -63,6 +64,11 @@ export function CommentsCarousel() {
     }, 3000);
     return () => clearInterval(id);
   }, []);
+
+  function toggleLike(i: number) {
+    setLiked((prev) => ({ ...prev, [i]: !prev[i] }));
+  }
+
 
   return (
     <div className="mt-8">
