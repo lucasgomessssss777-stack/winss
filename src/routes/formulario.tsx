@@ -1,8 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import QRCode from "qrcode";
 import { Copy, Check, ShieldCheck, CheckCircle2 } from "lucide-react";
 import { createPixTransaction, checkPixStatus } from "../lib/pix.functions";
+
 
 export const Route = createFileRoute("/formulario")({
   head: () => ({
