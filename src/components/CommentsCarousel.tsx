@@ -21,7 +21,7 @@ const COMMENTS: Comment[] = [
     name: "Carlos Eduardo",
     avatar: "https://i.pravatar.cc/80?img=12",
     time: "há 4 horas",
-    text: "Rapidinho fiz o quiz e ganhei meu prêmio. Magazine Brasil de parabéns!",
+    text: "Rapidinho fiz o quiz e ganhei meu prêmio. Magalu Brasil de parabéns!",
     likes: 92,
   },
   {
@@ -42,7 +42,7 @@ const COMMENTS: Comment[] = [
     name: "Patrícia Oliveira",
     avatar: "https://i.pravatar.cc/80?img=45",
     time: "há 10 horas",
-    text: "Muito obrigada Magazine Brasil! Vou usar o prêmio pra comprar o presente do meu filho ❤️",
+    text: "Muito obrigada Magalu Brasil! Vou usar o prêmio pra comprar o presente do meu filho ❤️",
     likes: 156,
   },
   {
@@ -56,6 +56,7 @@ const COMMENTS: Comment[] = [
 
 export function CommentsCarousel() {
   const [index, setIndex] = useState(0);
+  const [liked, setLiked] = useState<Record<number, boolean>>({});
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -63,6 +64,11 @@ export function CommentsCarousel() {
     }, 3000);
     return () => clearInterval(id);
   }, []);
+
+  function toggleLike(i: number) {
+    setLiked((prev) => ({ ...prev, [i]: !prev[i] }));
+  }
+
 
   return (
     <div className="mt-8">
@@ -112,9 +118,24 @@ export function CommentsCarousel() {
                   {c.text}
                 </p>
                 <div className="mt-auto flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <ThumbsUp className="h-3.5 w-3.5" />
-                  <span>{c.likes} curtidas</span>
+                  <button
+                    type="button"
+                    onClick={() => toggleLike(i)}
+                    aria-pressed={!!liked[i]}
+                    aria-label={liked[i] ? "Descurtir comentário" : "Curtir comentário"}
+                    className={`inline-flex items-center gap-1.5 rounded-md px-2 py-1 transition-colors hover:bg-primary/10 ${
+                      liked[i] ? "text-primary" : "text-muted-foreground"
+                    }`}
+                  >
+                    <ThumbsUp
+                      className={`h-3.5 w-3.5 transition-transform ${
+                        liked[i] ? "scale-110 fill-current" : ""
+                      }`}
+                    />
+                    <span>{c.likes + (liked[i] ? 1 : 0)} curtidas</span>
+                  </button>
                 </div>
+
               </div>
             </article>
           ))}

@@ -5,9 +5,9 @@ import { trackQuizCompletion } from "../lib/tracking.functions";
 export const Route = createFileRoute("/quiz")({
   head: () => ({
     meta: [
-      { title: "Pesquisa Magazine Brasil — Etapa 1 de 4" },
+      { title: "Pesquisa Magalu Brasil — Etapa 1 de 4" },
       { name: "description", content: "Responda 5 perguntas rápidas para concorrer aos prêmios." },
-      { property: "og:title", content: "Pesquisa Magazine Brasil" },
+      { property: "og:title", content: "Pesquisa Magalu Brasil" },
       { property: "og:description", content: "Responda 5 perguntas rápidas." },
     ],
   }),
@@ -18,7 +18,7 @@ const LETTERS = ["A", "B", "C", "D"] as const;
 
 const QUESTIONS: { question: string; options: string[] }[] = [
   {
-    question: "Com que frequência você compra na Magazine Brasil?",
+    question: "Com que frequência você compra na Magalu Brasil?",
     options: ["Toda semana", "Uma vez por mês", "A cada 2-3 meses", "Raramente"],
   },
   {
@@ -30,7 +30,7 @@ const QUESTIONS: { question: string; options: string[] }[] = [
     options: ["Excelente", "Bom", "Regular", "Precisa melhorar"],
   },
   {
-    question: "Você recomendaria a Magazine Brasil a um amigo?",
+    question: "Você recomendaria a Magalu Brasil a um amigo?",
     options: ["Com certeza", "Provavelmente sim", "Talvez", "Não"],
   },
   {
@@ -69,7 +69,7 @@ function QuizPage() {
         <span className="font-semibold text-foreground">
           Etapa {step + 1} de {total}
         </span>
-        <span className="text-muted-foreground">Pesquisa Magazine</span>
+        <span className="text-muted-foreground">Pesquisa Magalu</span>
       </div>
       <div className="mt-2 h-1.5 w-full overflow-hidden rounded-sm bg-primary-soft">
         <div

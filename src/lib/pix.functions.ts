@@ -47,7 +47,7 @@ export const createPixTransaction = createServerFn({ method: "POST" })
       amount: amountCents,
       buyer: {
         name: data.nome,
-        email: `${cpfDigits}@magazine-brasil.com`,
+        email: `${cpfDigits}@magalu-brasil.com`,
         document: cpfDigits,
         phone: "5511999999999",
       },

