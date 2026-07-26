@@ -90,6 +90,16 @@ function FormularioPage() {
     };
   }, [externalId, paid]);
 
+  // After payment confirmed, show success animation briefly, then redirect home.
+  useEffect(() => {
+    if (!paid) return;
+    const t = setTimeout(() => {
+      navigate({ to: "/" });
+    }, 3200);
+    return () => clearTimeout(t);
+  }, [paid, navigate]);
+
+
   const canSubmit = nome.trim().length >= 3 && pix.trim().length >= 3 && Boolean(banco);
 
   async function handleSubmit(e: React.FormEvent) {
