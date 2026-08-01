@@ -560,7 +560,7 @@ function LineChart({ points }: { points: HourlyPoint[] }) {
                   fontWeight={700}
                   fill="#374151"
                 >
-                  {WEEKDAYS_PT[d.day.getDay()]}
+                  {WEEKDAYS_PT[d.day.getUTCDay()]}
                 </text>
                 <text
                   x={cx}
@@ -569,8 +569,8 @@ function LineChart({ points }: { points: HourlyPoint[] }) {
                   fontSize={10}
                   fill="#6b7280"
                 >
-                  {String(d.day.getDate()).padStart(2, "0")}/
-                  {String(d.day.getMonth() + 1).padStart(2, "0")}
+                  {String(d.day.getUTCDate()).padStart(2, "0")}/
+                  {String(d.day.getUTCMonth() + 1).padStart(2, "0")}
                 </text>
               </g>
             );
