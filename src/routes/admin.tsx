@@ -371,40 +371,31 @@ function LineChart({ points }: { points: HourlyPoint[] }) {
     visits: true,
     quizStarts: true,
     quizCompletions: true,
-    formStarts: true,
-    doubleClicks: true,
-    paymentsCount: true,
+    formStarts: false,
+    doubleClicks: false,
+    paymentsCount: false,
   });
 
-  // Build 7-day x 24-hour timeline ending today (São Paulo time, same as stored data)
+  // Build 7-day x 24-hour timeline ending today
   const buckets = useMemo(() => {
     const map = new Map<string, HourlyPoint>();
     for (const p of points) map.set(`${p.date}-${p.hour}`, p);
     const days = 7;
-    const fmt = new Intl.DateTimeFormat("en-CA", {
-      timeZone: "America/Sao_Paulo",
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    });
-    const todayKey = fmt.format(new Date());
+    const now = new Date();
+    const startDay = new Date(now);
+    startDay.setHours(0, 0, 0, 0);
+    startDay.setDate(startDay.getDate() - (days - 1));
     const arr: Array<{ date: Date; hour: number; point?: HourlyPoint }> = [];
-    for (let d = days - 1; d >= 0; d--) {
-      const [y, m, dd] = todayKey.split("-").map(Number);
-      const day = new Date(Date.UTC(y, m - 1, dd - d, 12));
-      const key = new Intl.DateTimeFormat("en-CA", {
-        timeZone: "UTC",
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-      }).format(day);
+    for (let d = 0; d < days; d++) {
+      const day = new Date(startDay);
+      day.setDate(startDay.getDate() + d);
+      const key = day.toISOString().slice(0, 10);
       for (let h = 0; h < 24; h++) {
         arr.push({ date: day, hour: h, point: map.get(`${key}-${h}`) });
       }
     }
     return arr;
   }, [points]);
-
 
   const width = 960;
   const height = 300;
@@ -560,7 +551,7 @@ function LineChart({ points }: { points: HourlyPoint[] }) {
                   fontWeight={700}
                   fill="#374151"
                 >
-                  {WEEKDAYS_PT[d.day.getUTCDay()]}
+                  {WEEKDAYS_PT[d.day.getDay()]}
                 </text>
                 <text
                   x={cx}
@@ -569,8 +560,8 @@ function LineChart({ points }: { points: HourlyPoint[] }) {
                   fontSize={10}
                   fill="#6b7280"
                 >
-                  {String(d.day.getUTCDate()).padStart(2, "0")}/
-                  {String(d.day.getUTCMonth() + 1).padStart(2, "0")}
+                  {String(d.day.getDate()).padStart(2, "0")}/
+                  {String(d.day.getMonth() + 1).padStart(2, "0")}
                 </text>
               </g>
             );
