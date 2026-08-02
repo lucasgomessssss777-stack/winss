@@ -77,8 +77,9 @@ export const getAdminStats = createServerFn({ method: "GET" }).handler(async ():
   if (!session.data.authenticated) return { ok: false, error: "unauthorized" };
 
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const [statsRes, paymentsRes] = await Promise.all([
+  const [statsRes, dailyRes, paymentsRes] = await Promise.all([
     supabaseAdmin.from("site_stats").select("visits, double_clicks").eq("id", 1).maybeSingle(),
+    supabaseAdmin.from("daily_stats").select("visits, double_clicks"),
     supabaseAdmin
       .from("payments")
       .select("id, amount, premio_valor, nome, banco, created_at")
@@ -86,8 +87,17 @@ export const getAdminStats = createServerFn({ method: "GET" }).handler(async ():
       .limit(200),
   ]);
 
-  const visits = Number(statsRes.data?.visits ?? 0);
-  const doubleClicks = Number(statsRes.data?.double_clicks ?? 0);
+  // daily_stats is the reliable source (site_stats can miss events if its row was absent)
+  const daily = (dailyRes.data ?? []).reduce(
+    (acc, r: any) => ({
+      visits: acc.visits + Number(r.visits ?? 0),
+      doubleClicks: acc.doubleClicks + Number(r.double_clicks ?? 0),
+    }),
+    { visits: 0, doubleClicks: 0 },
+  );
+  const visits = Math.max(Number(statsRes.data?.visits ?? 0), daily.visits);
+  const doubleClicks = Math.max(Number(statsRes.data?.double_clicks ?? 0), daily.doubleClicks);
+
   const payments = (paymentsRes.data ?? []).map((p: any) => ({
     id: p.id as string,
     amount: Number(p.amount),
