@@ -163,6 +163,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      br_hour: { Args: never; Returns: number }
+      br_today: { Args: never; Returns: string }
       increment_daily_double_click: { Args: never; Returns: undefined }
       increment_daily_form_start: { Args: never; Returns: undefined }
       increment_daily_payment: { Args: { amount: number }; Returns: undefined }
