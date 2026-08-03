@@ -44,11 +44,29 @@ function AdminPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const check = useServerFn(checkAdminSession);
+  const getStats = useServerFn(getAdminStats);
+  const getFunnel = useServerFn(getDailyFunnel);
+  const getHourly = useServerFn(getHourlyStats);
   const sessionQ = useQuery({
     queryKey: ["admin-session"],
     queryFn: () => check(),
-    staleTime: 5 * 60 * 1000,
+    staleTime: 30 * 60 * 1000,
+    gcTime: 60 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
+
+  function prefetchDashboard() {
+    queryClient.prefetchQuery({ queryKey: ["admin-stats"], queryFn: () => getStats() });
+    queryClient.prefetchQuery({
+      queryKey: ["admin-funnel", 7],
+      queryFn: () => getFunnel({ data: { days: 7 } }),
+    });
+    queryClient.prefetchQuery({
+      queryKey: ["admin-hourly", 7],
+      queryFn: () => getHourly({ data: { days: 7 } }),
+    });
+  }
 
   if (sessionQ.isLoading) {
     return (
@@ -61,9 +79,10 @@ function AdminPage() {
   if (!sessionQ.data?.authenticated) {
     return (
       <LoginForm
+        onStart={prefetchDashboard}
         onSuccess={() => {
           queryClient.setQueryData(["admin-session"], { authenticated: true });
-          router.invalidate();
+          prefetchDashboard();
         }}
       />
     );
@@ -73,6 +92,7 @@ function AdminPage() {
     <Dashboard
       onLogout={() => {
         queryClient.setQueryData(["admin-session"], { authenticated: false });
+        queryClient.removeQueries({ queryKey: ["admin-stats"] });
         router.invalidate();
       }}
     />
@@ -80,7 +100,8 @@ function AdminPage() {
 }
 
 
-function LoginForm({ onSuccess }: { onSuccess: () => void }) {
+
+function LoginForm({ onSuccess, onStart }: { onSuccess: () => void; onStart?: () => void }) {
   const login = useServerFn(adminLogin);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -95,7 +116,10 @@ function LoginForm({ onSuccess }: { onSuccess: () => void }) {
     try {
       const res = await login({ data: { email: email.trim(), password } });
       if (!res.ok) setError(res.error);
-      else onSuccess();
+      else {
+        onStart?.();
+        onSuccess();
+      }
     } catch {
       setError("Falha ao entrar. Tente novamente.");
     } finally {
@@ -173,7 +197,7 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
     refetchInterval: 30000,
   });
 
-  if (statsQ.isLoading || funnelQ.isLoading) {
+  if (statsQ.isLoading) {
     return (
       <div className="mx-auto max-w-5xl px-4 py-10 text-sm text-muted-foreground sm:px-5">
         Carregando dados...

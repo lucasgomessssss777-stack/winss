@@ -4,7 +4,7 @@ import { z } from "zod";
 const buildSessionConfig = () => ({
   password: process.env.ADMIN_SESSION_SECRET!,
   name: "mb-admin-session",
-  maxAge: 60 * 60 * 8,
+  maxAge: 60 * 60 * 24 * 30,
   cookie: {
     httpOnly: true,
     secure: true,
