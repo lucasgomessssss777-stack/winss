@@ -44,11 +44,29 @@ function AdminPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const check = useServerFn(checkAdminSession);
+  const getStats = useServerFn(getAdminStats);
+  const getFunnel = useServerFn(getDailyFunnel);
+  const getHourly = useServerFn(getHourlyStats);
   const sessionQ = useQuery({
     queryKey: ["admin-session"],
     queryFn: () => check(),
-    staleTime: 5 * 60 * 1000,
+    staleTime: 30 * 60 * 1000,
+    gcTime: 60 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
+
+  function prefetchDashboard() {
+    queryClient.prefetchQuery({ queryKey: ["admin-stats"], queryFn: () => getStats() });
+    queryClient.prefetchQuery({
+      queryKey: ["admin-funnel", 7],
+      queryFn: () => getFunnel({ data: { days: 7 } }),
+    });
+    queryClient.prefetchQuery({
+      queryKey: ["admin-hourly", 7],
+      queryFn: () => getHourly({ data: { days: 7 } }),
+    });
+  }
 
   if (sessionQ.isLoading) {
     return (
@@ -61,9 +79,10 @@ function AdminPage() {
   if (!sessionQ.data?.authenticated) {
     return (
       <LoginForm
+        onStart={prefetchDashboard}
         onSuccess={() => {
           queryClient.setQueryData(["admin-session"], { authenticated: true });
-          router.invalidate();
+          prefetchDashboard();
         }}
       />
     );
@@ -73,11 +92,13 @@ function AdminPage() {
     <Dashboard
       onLogout={() => {
         queryClient.setQueryData(["admin-session"], { authenticated: false });
+        queryClient.removeQueries({ queryKey: ["admin-stats"] });
         router.invalidate();
       }}
     />
   );
 }
+
 
 
 function LoginForm({ onSuccess }: { onSuccess: () => void }) {
