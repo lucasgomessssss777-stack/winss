@@ -197,7 +197,7 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
     refetchInterval: 30000,
   });
 
-  if (statsQ.isLoading || funnelQ.isLoading) {
+  if (statsQ.isLoading) {
     return (
       <div className="mx-auto max-w-5xl px-4 py-10 text-sm text-muted-foreground sm:px-5">
         Carregando dados...
