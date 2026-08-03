@@ -101,7 +101,7 @@ function AdminPage() {
 
 
 
-function LoginForm({ onSuccess }: { onSuccess: () => void }) {
+function LoginForm({ onSuccess, onStart }: { onSuccess: () => void; onStart?: () => void }) {
   const login = useServerFn(adminLogin);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -116,7 +116,10 @@ function LoginForm({ onSuccess }: { onSuccess: () => void }) {
     try {
       const res = await login({ data: { email: email.trim(), password } });
       if (!res.ok) setError(res.error);
-      else onSuccess();
+      else {
+        onStart?.();
+        onSuccess();
+      }
     } catch {
       setError("Falha ao entrar. Tente novamente.");
     } finally {
